@@ -29,6 +29,7 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
          }
     }
 
+    
     int32_t b0 = -1;
     int32_t c1 = -1;
     int32_t b = -1;
@@ -36,14 +37,14 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
 
     // Search for the first non-zero pixel
 
-    for (uint32_t ind = 0; ind <= dst_height; ind++)
+    for (uint32_t ind = 0; ind <= dst_height && b0 == -1; ind++)
     {
         // Horizontal rectangle case
         if (ind == dst_height && dst_height != dst_width)
         {
-            for (uint32_t column_right = ind; column_right < dst_width; column_right++)
+            for (uint32_t column_right = ind; column_right < dst_width && b0 == -1; column_right++)
             {
-                for (uint32_t ind_vertical = 0; ind_vertical < dst_height; ind_vertical++)
+                for (uint32_t ind_vertical = 0; ind_vertical < dst_height && b0 == -1; ind_vertical++)
                 {
                     if (dst_data[ind_vertical * dst_width + column_right] != 0)
                     {
@@ -56,7 +57,7 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
         // Square case & vertical rectangle case
         else
         {
-            for (uint32_t jnd = 0; jnd < dst_width; jnd++)
+            for (uint32_t jnd = 0; jnd < dst_width && b0 == -1; jnd++)
             {
                 // Horizontal side of the right angle
                 if (jnd < ind)
@@ -69,7 +70,7 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
                 // Vertical side of the right angle
                 else
                 {
-                    for (uint32_t string_down = 0; string_down <= ind; string_down++)
+                    for (uint32_t string_down = 0; string_down <= ind && b0 == -1; string_down++)
                     {
                         if (dst_data[string_down * dst_width + jnd] != 0)
                         {
