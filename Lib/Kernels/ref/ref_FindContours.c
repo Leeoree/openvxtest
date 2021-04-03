@@ -19,21 +19,22 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
 
     for (uint32_t ind = 0; ind < src_width * src_height; ++ind)
     {
-         if (src_data[ind] > value)
+         if (src_data[ind] > value || ind / src_width == 0 || ind / src_width == src_width - 1 || )
          {
-            dst_data[ind] = 127;
+            dst_data[ind] = 0;
          }
          else
          {
-            dst_data[ind] = 0;
+            dst_data[ind] = 127;
          }
     }
 
     
     int32_t b0 = -1;
-    int32_t c1 = -1;
+    int32_t b1 = -1;
     int32_t b = -1;
     int32_t c = -1;
+
 
     // Search for the first non-zero pixel
 
@@ -81,5 +82,282 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
             }
         }
     }
+
+    while (b != b0 && c != b1)
+    {
+        // First iteration
+        if (b1 == -1)
+        {
+            c = b0 - 1;
+
+            // b0 is upper left corner -> c is right to it
+            if(c == -1)
+            { 
+                c = b0 + 1;
+
+                if (dst_data[c] != 0)
+                {
+                    b1 = c;
+                    c = b1 + 1;
+                }
+                else
+                {
+                    c = c + dst_width;
+                    if (dst_data[c] != 0)
+                    {
+                        b1 = c;
+                        c = c - dst_width;
+                    }
+                    else
+                    {
+                        c = c - 1;
+                        if (dst_data[c] != 0)
+                        {
+                            b1 = c;
+                            c = c + 1;
+                        }
+                        // Isolated pixel -> stop searching
+                        else
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                // b0 is on the left border -> c is up to it
+                if (c / dst_width != b0 / dst_width)
+                {
+                    c = b0 - dst_width;
+
+                    if (dst_data[c] != 0)
+                    {
+                        b1 = c;
+                        b = b1;
+                        c = b1 - dst_width;
+                    }
+                    else
+                    {
+                        c = c + 1;
+                        if (dst_data[c] != 0)
+                        {
+                            b1 = c;
+                            b = b1;
+                            c = c - 1;
+                        }
+                        else
+                        {
+                            c = c + dst_width;
+                            if (dst_data[c] != 0)
+                            {
+                                b1 = c;
+                                b = b1;
+                                c = c - dst_width;
+                            }
+                            else
+                            {
+                                c = c + dst_width;
+                                if (dst_data[c] != 0)
+                                {
+                                    b1 = c;
+                                    b = b1;
+                                    c = c - dst_width;
+                                }
+                                else
+                                {
+                                    c = c - 1;
+                                    if (dst_data[c] != 0)
+                                    {
+                                        b1 = c;
+                                        b = b1;
+                                        c = c + 1;
+                                    }
+                                    // Isolated pixel -> stop searching
+                                    else
+                                    {
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                // c is left to b0 
+                else
+                {
+                    if (dst_data[c] != 0)
+                    {
+                        b1 = c;
+                        b = b1;
+                        c = c + dst_width;
+                    }
+                    else
+                    {
+                        c = c - dst_width;
+                        if (dst_data[c] != 0)
+                        {
+                            b1 = c;
+                            b = b1;
+                            c = c + dst_width;
+                        }
+                        else
+                        {
+                            c = c + 1;
+                            if (dst_data[c] != 0)
+                            {
+                                b1 = c;
+                                b = b1;
+                                c = c - 1;
+                            }
+                            else
+                            {
+                                c = c + 1;
+                                if (dst_data[c] != 0)
+                                {
+                                    b1 = c;
+                                    b = b1;
+                                    c = c - 1;
+                                }
+                                else
+                                {
+                                    c = c + dst_width;
+                                    if (dst_data[c] != 0)
+                                    {
+                                        b1 = c;
+                                        b = b1;
+                                        c = c - dst_width;
+                                    }
+                                    else
+                                    {
+                                        c = c + dst_width;
+                                        if (dst_data[c] != 0)
+                                        {
+                                            b1 = c;
+                                            b = b1;
+                                            c = c - dst_width;
+                                        }
+                                        else
+                                        {
+                                            c = c - 1;
+                                            if (dst_data[c] != 0)
+                                            {
+                                                b1 = c;
+                                                b = b1;
+                                                c = c + 1;
+                                            }
+                                            else
+                                            {
+                                                c = c - 1;
+                                                if (dst_data[c] != 0)
+                                                {
+                                                    b1 = c;
+                                                    b = b1;
+                                                    c = c + 1;
+                                                }
+                                                // Isolated pixel -> stop searching
+                                                else
+                                                {
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+        }
+
+        // Core iterations
+        else
+        {
+            if (dst_data[c] != 0)
+            {
+                dst_data[c] = 255;
+                b = c;
+                c = c + dst_width;
+            }
+            else
+            {
+                c = c - dst_width;
+                if (dst_data[c] != 0)
+                {
+                    dst_data[c] = 255;
+                    b = c;
+                    c = c + dst_width;
+                }
+                else
+                {
+                    c = c + 1;
+                    if (dst_data[c] != 0)
+                    {
+                        dst_data[c] = 255;
+                        b = c;
+                        c = c - 1;
+                    }
+                    else
+                    {
+                        c = c + 1;
+                        if (dst_data[c] != 0)
+                        {
+                            dst_data[c] = 255;
+                            b = c;
+                            c = c - 1;
+                        }
+                        else
+                        {
+                            c = c + dst_width;
+                            if (dst_data[c] != 0)
+                            {
+                                dst_data[c] = 255;
+                                b = c;
+                                c = c - dst_width;
+                            }
+                            else
+                            {
+                                c = c + dst_width;
+                                if (dst_data[c] != 0)
+                                {
+                                    dst_data[c] = 255;
+                                    b = c;
+                                    c = c - dst_width;
+                                }
+                                else
+                                {
+                                    c = c - 1;
+                                    if (dst_data[c] != 0)
+                                    {
+                                        dst_data[c] = 255;
+                                        b = c;
+                                        c = c + 1;
+                                    }
+                                    else
+                                    {
+                                        c = c - 1;
+                                        if (dst_data[c] != 0)
+                                        {
+                                            dst_data[c] = 255;
+                                            b = c;
+                                            c = c + 1;
+                                        }
+                                        // Isolated pixel -> stop searching
+                                        else
+                                        {
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     return VX_SUCCESS;
 }
