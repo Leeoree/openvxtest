@@ -116,7 +116,7 @@ void demo_FindContours::applyParameters(int, void* data)
        VX_COLOR_SPACE_DEFAULT
     };
 
-    //ref_FindContours(&srcVXImage, &dstVXImage);
+    ref_FindContours(&srcVXImage, &dstVXImage);
 
     const cv::Mat vxImage = cv::Mat(imgSize, CV_8UC1, outVXImage);
     cv::imshow(m_openVXWindow, vxImage);
