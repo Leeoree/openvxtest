@@ -41,6 +41,7 @@ typedef std::unique_ptr<IDemoCase> IDemoCasePtr;
 IDemoCasePtr CreateThresholdingDemo();
 
 /// TODO: add your demos here
+IDemoCasePtr CreateFindContoursDemo();
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -59,6 +60,7 @@ public:
     {
         m_demoRegistry.push_back(CreateThresholdingDemo());
         // TODO: add your demos here
+        m_demoRegistry.push_back(CreateFindContoursDemo());
     }
 
     ///@brief Execute demos

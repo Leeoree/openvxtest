@@ -1,0 +1,14 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\Demo",
+    "\\Demo\\Kernels",
+    "\\Lib",
+    "\\Lib\\Common",
+    "\\Lib\\Common\\openvx",
+    "\\Lib\\Kernels",
+    "\\Lib\\Kernels\\ref"
+  ],
+  "SelectedNode": "\\Demo\\Kernels\\demo_Threshold.cpp",
+  "PreviewInSolutionExplorer": false
+}
