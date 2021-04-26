@@ -21,13 +21,13 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
     for (uint32_t ind = 0; ind < src_width * src_height; ++ind)
     {
         dst_data[ind] = src_data[ind];
-         if (src_data[ind] > value || ind / src_width == 0 || ind / src_width == src_width - 1 || ind % src_width == 0 || ind % src_width == src_width - 1)
+         if (src_data[ind] > value && ind / src_width != 0 && ind / src_width != src_width - 1 && ind % src_width != 0 && ind % src_width != src_width - 1)
          {
-            dst_data[ind] = 0;
+            dst_data[ind] = 127;
          }
          else
          {
-            dst_data[ind] = 127;
+            dst_data[ind] = 0;
          }
     }
 
