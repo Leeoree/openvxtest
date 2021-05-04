@@ -60,7 +60,7 @@ void demo_FindContours::execute()
     cv::namedWindow(m_originalWindow, CV_WINDOW_NORMAL);
     cv::namedWindow(m_openVXWindow, CV_WINDOW_NORMAL);
     cv::namedWindow(m_openCVWindow, CV_WINDOW_NORMAL);
-    //cv::namedWindow(m_diffWindow, CV_WINDOW_NORMAL);
+    cv::namedWindow(m_diffWindow, CV_WINDOW_NORMAL);
 
     const std::string imgPath = "../../../../Image/testimg1_8UC1.png";
     m_srcImage = cv::imread(imgPath, CV_LOAD_IMAGE_GRAYSCALE);
@@ -91,7 +91,7 @@ void demo_FindContours::applyParameters(int, void* data)
     cv::Mat drawing = cv::Mat::zeros(cvImage.size(), CV_8UC3);
     for (size_t i = 0; i < contours.size(); i++)
     {
-        cv::Scalar color = cv::Scalar(rng.uniform(0, 256), rng.uniform(0, 256), rng.uniform(0, 256));
+        cv::Scalar color = cv::Scalar(rng.uniform(255, 256), rng.uniform(255, 256), rng.uniform(255, 256));
         cv::drawContours(drawing, contours, (int)i, color, 2, cv::LINE_8, hierarchy, 0);
     }
 
@@ -123,9 +123,9 @@ void demo_FindContours::applyParameters(int, void* data)
     ///@}
 
     // Show difference of OpenVX and OpenCV
-    /*const cv::Mat diffImage(imgSize, CV_8UC1);
+    const cv::Mat diffImage(imgSize, CV_8UC1);
     cv::absdiff(vxImage, cvImage, diffImage);
-    cv::imshow(m_diffWindow, diffImage);*/
+    cv::imshow(m_diffWindow, diffImage);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
