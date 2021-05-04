@@ -1,4 +1,4 @@
-#include "stdio.h"
+
 #include "../ref.h"
 
 vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
@@ -17,6 +17,8 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
     uint8_t* dst_data = dst_image->data;
     uint8_t value = 127;
 
+    //Inner Theshold
+
     for (uint32_t ind = 0; ind < src_width * src_height; ++ind)
     {
         dst_data[ind] = src_data[ind];
@@ -34,15 +36,15 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
     int32_t b1 = -2;
     int32_t b = -4;
     int32_t c = -5;
+
     uint32_t count;
-    // contours_count = 0;
 
     uint32_t min_height;
     uint32_t max_height;
     uint32_t min_width;
     uint32_t max_width;
 
-    //uint32_t* contours = malloc(sizeof(uint32_t) * dst_height * dst_width);
+    //Main iterator
 
     while (true)
     {
@@ -51,7 +53,7 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
         b = -4;
         c = -5;
 
-        // Search for the first non-zero pixel
+        // Search for the first non-zero pixel that is not a part of already found contour
 
         for (uint32_t ind = 0; ind <= dst_height && b0 == -1; ind++)
         {
@@ -98,6 +100,8 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
             }
         }    
 
+        //Exit condition
+
         if (b0 != -1)
         {
             dst_data[b0] = 255;
@@ -105,9 +109,6 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
         }
         else
             break;
-
-        
-
 
         min_height = b0 / dst_width;
         max_height = b0 / dst_width;
@@ -121,17 +122,18 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
         * 8  7  6
         */
 
+        //Count condition for a flat line
+
         count = 0;
 
         while (b != b0 && c != b1 && count < dst_width * dst_height)
         {
             count += 1;
 
+            //Fist iteration for single contour
 
             if (b1 == -2)
             {
-                //printf("%d %d\n", dst_data[b0], dst_data[c]);
-                
                 if (dst_data[c] != 0)
                 {
                     b1 = c; c += dst_width; b = b1;
@@ -197,7 +199,7 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
                 }
             }
 
-            
+            //Main constuctor
 
             else
             {
@@ -754,7 +756,7 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
                 }
             }
 
-
+            //Isolated dot case
 
             if (b != -2)
             {
@@ -775,6 +777,8 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
             else
                 break;
         }
+
+        //Coloring rectange containing current contour in black
 
         for (uint32_t j = 0, starting_point = min_height * dst_width + min_width; j < max_height - min_height + 1; j++)
             for (uint32_t i = 0; i < max_width - min_width + 1; i++)
