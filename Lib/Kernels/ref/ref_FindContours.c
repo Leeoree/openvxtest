@@ -1,4 +1,4 @@
-
+#include "stdio.h"
 #include "../ref.h"
 
 vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
@@ -22,7 +22,7 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
         dst_data[ind] = src_data[ind];
          if (src_data[ind] > value && ind / src_width != 0 && ind / src_width != src_width - 1 && ind % src_width != 0 && ind % src_width != src_width - 1)
          {
-            dst_data[ind] = 127;
+            dst_data[ind] = value;
          }
          else
          {
@@ -35,13 +35,14 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
     int32_t b = -4;
     int32_t c = -5;
     uint32_t count;
-    uint32_t contour_count;
-   
+    // contours_count = 0;
 
     uint32_t min_height;
     uint32_t max_height;
     uint32_t min_width;
     uint32_t max_width;
+
+    //uint32_t* contours = malloc(sizeof(uint32_t) * dst_height * dst_width);
 
     while (true)
     {
@@ -61,7 +62,7 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
                 {
                     for (uint32_t ind_vertical = 0; ind_vertical < dst_height && b0 == -1; ind_vertical++)
                     {
-                        if (dst_data[ind_vertical * dst_width + column_right] != 0)
+                        if (dst_data[ind_vertical * dst_width + column_right] == value)
                         {
                             b0 = ind_vertical * dst_width + column_right;
                         }
@@ -77,29 +78,25 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
                     // Horizontal side of the right angle
                     if (jnd < ind)
                     {
-                        if (dst_data[ind * dst_width + jnd] != 0)
+                        if (dst_data[ind * dst_width + jnd] == value)
                         {
                             b0 = ind * dst_width + jnd;
                         }
-                        //dst_data[ind * dst_width + jnd] = 255;
                     }
                     // Vertical side of the right angle
                     else
                     {
                         for (uint32_t string_down = 0; string_down <= ind && b0 == -1; string_down++)
                         {
-                            if (dst_data[string_down * dst_width + jnd] != 0)
+                            if (dst_data[string_down * dst_width + jnd] == value)
                             {
                                 b0 = string_down * dst_width + jnd;
                             }
-                            //dst_data[string_down * dst_width + jnd] = 255;
                         }
                     }
                 }
             }
-        }
-
-        
+        }    
 
         if (b0 != -1)
         {
@@ -109,6 +106,7 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
         else
             break;
 
+        
 
 
         min_height = b0 / dst_width;
@@ -125,69 +123,71 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
 
         count = 0;
 
-        while (b != b0 && c != b1 && count < 2000)
+        while (b != b0 && c != b1 && count < dst_width * dst_height)
         {
             count += 1;
 
+
             if (b1 == -2)
             {
-                if (dst_data[c] != 0)
+                //printf("%d %d\n", dst_data[b0], dst_data[c]);
+                
+                if (dst_data[c] == value)
                 {
                     b1 = c; c += dst_width; b = b1;
                 }
                 else
                 {
                     c -= dst_width;
-                    if (dst_data[c] != 0)
+                    if (dst_data[c] == value)
                     {
                         b1 = c; c += dst_width; b = b1;
                     }
                     else
                     {
                         c += 1;
-                        if (dst_data[c] != 0)
+                        if (dst_data[c] == value)
                         {
                             b1 = c; c -= 1; b = b1;
                         }
                         else
                         {
                             c += 1;
-                            if (dst_data[c] != 0)
+                            if (dst_data[c] == value)
                             {
                                 b1 = c; c -= 1; b = b1;
                             }
                             else
                             {
                                 c += dst_width;
-                                if (dst_data[c] != 0)
+                                if (dst_data[c] == value)
                                 {
                                     b1 = c; c -= dst_width; b = b1;
                                 }
                                 else
                                 {
                                     c += dst_width;
-                                    if (dst_data[c] != 0)
+                                    if (dst_data[c] == value)
                                     {
                                         b1 = c; c -= dst_width; b = b1;
                                     }
                                     else
                                     {
                                         c -= 1;
-                                        if (dst_data[c] != 0)
+                                        if (dst_data[c] == value)
                                         {
                                             b1 = c; c += 1; b = b1;
                                         }
                                         else
                                         {
                                             c -= 1;
-                                            if (dst_data[c] != 0)
+                                            if (dst_data[c] == value)
                                             {
+
                                                 b1 = c; c += 1; b = b1;
                                             }
                                             else
-                                            {
-                                                continue;
-                                            }
+                                                break;
                                         }
                                     }
                                 }
@@ -197,61 +197,63 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
                 }
             }
 
+            
+
             else
             {
                 //1
                 if (c == b - 1)
                 {
-                    if (dst_data[c] != 0)
+                    if (dst_data[c] == value)
                     {
                         b = c; c += dst_width;
                     }
                     else
                     {
                         c -= dst_width;
-                        if (dst_data[c] != 0)
+                        if (dst_data[c] == value)
                         {
                             b = c;  c += dst_width;
                         }
                         else
                         {
                             c += 1;
-                            if (dst_data[c] != 0)
+                            if (dst_data[c] == value)
                             {
                                 b = c; c -= 1;
                             }
                             else
                             {
                                 c += 1;
-                                if (dst_data[c] != 0)
+                                if (dst_data[c] == value)
                                 {
                                     b = c; c -= 1;
                                 }
                                 else
                                 {
                                     c += dst_width;
-                                    if (dst_data[c] != 0)
+                                    if (dst_data[c] == value)
                                     {
                                         b = c; c -= dst_width;
                                     }
                                     else
                                     {
                                         c += dst_width;
-                                        if (dst_data[c] != 0)
+                                        if (dst_data[c] == value)
                                         {
                                             b = c; c -= dst_width;
                                         }
                                         else
                                         {
                                             c -= 1;
-                                            if (dst_data[c] != 0)
+                                            if (dst_data[c] == value)
                                             {
                                                 b = c; c += 1;
                                             }
                                             else
                                             {
                                                 c -= 1;
-                                                if (dst_data[c] != 0)
+                                                if (dst_data[c] == value)
                                                 {
                                                     b = c; c += 1;
                                                 }
@@ -271,56 +273,56 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
                 //2
                 if (c == b - 1 - dst_width)
                 {
-                    if (dst_data[c] != 0)
+                    if (dst_data[c] == value)
                     {
                         b = c; c += dst_width;
                     }
                     else
                     {
                         c += 1;
-                        if (dst_data[c] != 0)
+                        if (dst_data[c] == value)
                         {
                             b = c;  c -= 1;
                         }
                         else
                         {
                             c += 1;
-                            if (dst_data[c] != 0)
+                            if (dst_data[c] == value)
                             {
                                 b = c; c -= 1;
                             }
                             else
                             {
                                 c += dst_width;
-                                if (dst_data[c] != 0)
+                                if (dst_data[c] == value)
                                 {
                                     b = c; c -= dst_width;
                                 }
                                 else
                                 {
                                     c += dst_width;
-                                    if (dst_data[c] != 0)
+                                    if (dst_data[c] == value)
                                     {
                                         b = c; c -= dst_width;
                                     }
                                     else
                                     {
                                         c -= 1;
-                                        if (dst_data[c] != 0)
+                                        if (dst_data[c] == value)
                                         {
                                             b = c; c += 1;
                                         }
                                         else
                                         {
                                             c -= 1;
-                                            if (dst_data[c] != 0)
+                                            if (dst_data[c] == value)
                                             {
                                                 b = c; c += 1;
                                             }
                                             else
                                             {
                                                 c -= dst_width;
-                                                if (dst_data[c] != 0)
+                                                if (dst_data[c] == value)
                                                 {
                                                     b = c; c += dst_width;
                                                 }
@@ -340,56 +342,56 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
                 //3
                 if (c == b - dst_width)
                 {
-                    if (dst_data[c] != 0)
+                    if (dst_data[c] == value)
                     {
                         b = c; c -= 1;
                     }
                     else
                     {
                         c += 1;
-                        if (dst_data[c] != 0)
+                        if (dst_data[c] == value)
                         {
                             b = c;  c -= 1;
                         }
                         else
                         {
                             c += dst_width;
-                            if (dst_data[c] != 0)
+                            if (dst_data[c] == value)
                             {
                                 b = c; c -= dst_width;
                             }
                             else
                             {
                                 c += dst_width;
-                                if (dst_data[c] != 0)
+                                if (dst_data[c] == value)
                                 {
                                     b = c; c -= dst_width;
                                 }
                                 else
                                 {
                                     c -= 1;
-                                    if (dst_data[c] != 0)
+                                    if (dst_data[c] == value)
                                     {
                                         b = c; c += 1;
                                     }
                                     else
                                     {
                                         c -= 1;
-                                        if (dst_data[c] != 0)
+                                        if (dst_data[c] == value)
                                         {
                                             b = c; c += 1;
                                         }
                                         else
                                         {
                                             c -= dst_width;
-                                            if (dst_data[c] != 0)
+                                            if (dst_data[c] == value)
                                             {
                                                 b = c; c += dst_width;
                                             }
                                             else
                                             {
                                                 c -= dst_width;
-                                                if (dst_data[c] != 0)
+                                                if (dst_data[c] == value)
                                                 {
                                                     b = c; c += dst_width;
                                                 }
@@ -409,56 +411,56 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
                 //4
                 if (c == b + 1 - dst_width)
                 {
-                    if (dst_data[c] != 0)
+                    if (dst_data[c] == value)
                     {
                         b = c; c -= 1;
                     }
                     else
                     {
                         c += dst_width;
-                        if (dst_data[c] != 0)
+                        if (dst_data[c] == value)
                         {
                             b = c;  c -= dst_width;
                         }
                         else
                         {
                             c += dst_width;
-                            if (dst_data[c] != 0)
+                            if (dst_data[c] == value)
                             {
                                 b = c; c -= dst_width;
                             }
                             else
                             {
                                 c -= 1;
-                                if (dst_data[c] != 0)
+                                if (dst_data[c] == value)
                                 {
                                     b = c; c += 1;
                                 }
                                 else
                                 {
                                     c -= 1;
-                                    if (dst_data[c] != 0)
+                                    if (dst_data[c] == value)
                                     {
                                         b = c; c += 1;
                                     }
                                     else
                                     {
                                         c -= dst_width;
-                                        if (dst_data[c] != 0)
+                                        if (dst_data[c] == value)
                                         {
                                             b = c; c += dst_width;
                                         }
                                         else
                                         {
                                             c -= dst_width;
-                                            if (dst_data[c] != 0)
+                                            if (dst_data[c] == value)
                                             {
                                                 b = c; c += dst_width;
                                             }
                                             else
                                             {
                                                 c += 1;
-                                                if (dst_data[c] != 0)
+                                                if (dst_data[c] == value)
                                                 {
                                                     b = c; c -= 1;
                                                 }
@@ -478,56 +480,56 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
                 //5
                 if (c == b + 1)
                 {
-                    if (dst_data[c] != 0)
+                    if (dst_data[c] == value)
                     {
                         b = c; c -= dst_width;
                     }
                     else
                     {
                         c += dst_width;
-                        if (dst_data[c] != 0)
+                        if (dst_data[c] == value)
                         {
                             b = c;  c -= dst_width;
                         }
                         else
                         {
                             c -= 1;
-                            if (dst_data[c] != 0)
+                            if (dst_data[c] == value)
                             {
                                 b = c; c += 1;
                             }
                             else
                             {
                                 c -= 1;
-                                if (dst_data[c] != 0)
+                                if (dst_data[c] == value)
                                 {
                                     b = c; c += 1;
                                 }
                                 else
                                 {
                                     c -= dst_width;
-                                    if (dst_data[c] != 0)
+                                    if (dst_data[c] == value)
                                     {
                                         b = c; c += dst_width;
                                     }
                                     else
                                     {
                                         c -= dst_width;
-                                        if (dst_data[c] != 0)
+                                        if (dst_data[c] == value)
                                         {
                                             b = c; c += dst_width;
                                         }
                                         else
                                         {
                                             c += 1;
-                                            if (dst_data[c] != 0)
+                                            if (dst_data[c] == value)
                                             {
                                                 b = c; c -= 1;
                                             }
                                             else
                                             {
                                                 c += 1;
-                                                if (dst_data[c] != 0)
+                                                if (dst_data[c] == value)
                                                 {
                                                     b = c; c -= 1;
                                                 }
@@ -547,56 +549,56 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
                 //6
                 if (c == b + 1 + dst_width)
                 {
-                    if (dst_data[c] != 0)
+                    if (dst_data[c] == value)
                     {
                         b = c; c -= dst_width;
                     }
                     else
                     {
                         c -= 1;
-                        if (dst_data[c] != 0)
+                        if (dst_data[c] == value)
                         {
                             b = c;  c += 1;
                         }
                         else
                         {
                             c -= 1;
-                            if (dst_data[c] != 0)
+                            if (dst_data[c] == value)
                             {
                                 b = c; c += 1;
                             }
                             else
                             {
                                 c -= dst_width;
-                                if (dst_data[c] != 0)
+                                if (dst_data[c] == value)
                                 {
                                     b = c; c += dst_width;
                                 }
                                 else
                                 {
                                     c -= dst_width;
-                                    if (dst_data[c] != 0)
+                                    if (dst_data[c] == value)
                                     {
                                         b = c; c += dst_width;
                                     }
                                     else
                                     {
                                         c += 1;
-                                        if (dst_data[c] != 0)
+                                        if (dst_data[c] == value)
                                         {
                                             b = c; c -= 1;
                                         }
                                         else
                                         {
                                             c += 1;
-                                            if (dst_data[c] != 0)
+                                            if (dst_data[c] == value)
                                             {
                                                 b = c; c -= 1;
                                             }
                                             else
                                             {
                                                 c += dst_width;
-                                                if (dst_data[c] != 0)
+                                                if (dst_data[c] == value)
                                                 {
                                                     b = c; c -= dst_width;
                                                 }
@@ -616,56 +618,56 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
                 //7
                 if (c == b + dst_width)
                 {
-                    if (dst_data[c] != 0)
+                    if (dst_data[c] == value)
                     {
                         b = c; c -= 1;
                     }
                     else
                     {
                         c -= 1;
-                        if (dst_data[c] != 0)
+                        if (dst_data[c] == value)
                         {
                             b = c;  c += 1;
                         }
                         else
                         {
                             c -= dst_width;
-                            if (dst_data[c] != 0)
+                            if (dst_data[c] == value)
                             {
                                 b = c; c += dst_width;
                             }
                             else
                             {
                                 c -= dst_width;
-                                if (dst_data[c] != 0)
+                                if (dst_data[c] == value)
                                 {
                                     b = c; c += dst_width;
                                 }
                                 else
                                 {
                                     c += 1;
-                                    if (dst_data[c] != 0)
+                                    if (dst_data[c] == value)
                                     {
                                         b = c; c -= 1;
                                     }
                                     else
                                     {
                                         c += 1;
-                                        if (dst_data[c] != 0)
+                                        if (dst_data[c] == value)
                                         {
                                             b = c; c -= 1;
                                         }
                                         else
                                         {
                                             c += dst_width;
-                                            if (dst_data[c] != 0)
+                                            if (dst_data[c] == value)
                                             {
                                                 b = c; c -= dst_width;
                                             }
                                             else
                                             {
                                                 c += dst_width;
-                                                if (dst_data[c] != 0)
+                                                if (dst_data[c] == value)
                                                 {
                                                     b = c; c -= dst_width;
                                                 }
@@ -685,56 +687,56 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
                 //8
                 if (c == b - 1 + dst_width)
                 {
-                    if (dst_data[c] != 0)
+                    if (dst_data[c] == value)
                     {
                         b = c; c -= 1;
                     }
                     else
                     {
                         c -= dst_width;
-                        if (dst_data[c] != 0)
+                        if (dst_data[c] == value)
                         {
                             b = c;  c += dst_width;
                         }
                         else
                         {
                             c -= dst_width;
-                            if (dst_data[c] != 0)
+                            if (dst_data[c] == value)
                             {
                                 b = c; c += dst_width;
                             }
                             else
                             {
                                 c += 1;
-                                if (dst_data[c] != 0)
+                                if (dst_data[c] == value)
                                 {
                                     b = c; c -= 1;
                                 }
                                 else
                                 {
                                     c += 1;
-                                    if (dst_data[c] != 0)
+                                    if (dst_data[c] == value)
                                     {
                                         b = c; c -= 1;
                                     }
                                     else
                                     {
                                         c += dst_width;
-                                        if (dst_data[c] != 0)
+                                        if (dst_data[c] == value)
                                         {
                                             b = c; c -= dst_width;
                                         }
                                         else
                                         {
                                             c += dst_width;
-                                            if (dst_data[c] != 0)
+                                            if (dst_data[c] == value)
                                             {
                                                 b = c; c -= dst_width;
                                             }
                                             else
                                             {
                                                 c -= 1;
-                                                if (dst_data[c] != 0)
+                                                if (dst_data[c] == value)
                                                 {
                                                     b = c; c += 1;
                                                 }
@@ -752,6 +754,8 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
                 }
             }
 
+
+
             if (b != -2)
             {
                 dst_data[b] = 255;
@@ -768,11 +772,13 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
                     if (b % dst_width > max_width)
                         max_width = b % dst_width;
             }
+            else
+                break;
         }
 
         for (uint32_t j = 0, starting_point = min_height * dst_width + min_width; j < max_height - min_height + 1; j++)
             for (uint32_t i = 0; i < max_width - min_width + 1; i++)
-                //if (dst_data[starting_point + j * dst_width + i] != 255)
+                if (dst_data[starting_point + j * dst_width + i] != 255)
                     dst_data[starting_point + j * dst_width + i] = 0;
     }
     return VX_SUCCESS;
