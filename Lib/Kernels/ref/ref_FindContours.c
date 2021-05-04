@@ -1,5 +1,4 @@
-#include <stdio.h>
-#include<windows.h>
+
 #include "../ref.h"
 
 vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
@@ -31,18 +30,20 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
          }
     }
 
-
     int32_t b0 = -1;
     int32_t b1 = -2;
     int32_t b = -4;
     int32_t c = -5;
+    uint32_t count;
+    uint32_t contour_count;
+   
 
     uint32_t min_height;
     uint32_t max_height;
     uint32_t min_width;
     uint32_t max_width;
 
-    for (int m = 0; m < 25; m++)
+    while (true)
     {
         b0 = -1;
         b1 = -2;
@@ -71,7 +72,7 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
             // Square case & vertical rectangle case
             else
             {
-                for (uint32_t jnd = 0; jnd < dst_width && b0 == -1; jnd++)
+                for (uint32_t jnd = 0; jnd <= ind && b0 == -1; jnd++)
                 {
                     // Horizontal side of the right angle
                     if (jnd < ind)
@@ -80,6 +81,7 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
                         {
                             b0 = ind * dst_width + jnd;
                         }
+                        //dst_data[ind * dst_width + jnd] = 255;
                     }
                     // Vertical side of the right angle
                     else
@@ -90,11 +92,14 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
                             {
                                 b0 = string_down * dst_width + jnd;
                             }
+                            //dst_data[string_down * dst_width + jnd] = 255;
                         }
                     }
                 }
             }
         }
+
+        
 
         if (b0 != -1)
         {
@@ -103,6 +108,8 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
         }
         else
             break;
+
+
 
         min_height = b0 / dst_width;
         max_height = b0 / dst_width;
@@ -116,8 +123,12 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
         * 8  7  6
         */
 
-        while (b != b0 && c != b1)
+        count = 0;
+
+        while (b != b0 && c != b1 && count < 2000)
         {
+            count += 1;
+
             if (b1 == -2)
             {
                 if (dst_data[c] != 0)
@@ -246,7 +257,7 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
                                                 }
                                                 else
                                                 {
-                                                    return VX_SUCCESS;
+                                                    continue;
                                                 }
                                             }
                                         }
@@ -315,7 +326,7 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
                                                 }
                                                 else
                                                 {
-                                                    return VX_SUCCESS;
+                                                    continue;
                                                 }
                                             }
                                         }
@@ -384,7 +395,7 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
                                                 }
                                                 else
                                                 {
-                                                    return VX_SUCCESS;
+                                                    continue;
                                                 }
                                             }
                                         }
@@ -453,7 +464,7 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
                                                 }
                                                 else
                                                 {
-                                                    return VX_SUCCESS;
+                                                    continue;
                                                 }
                                             }
                                         }
@@ -522,7 +533,7 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
                                                 }
                                                 else
                                                 {
-                                                    return VX_SUCCESS;
+                                                    continue;
                                                 }
                                             }
                                         }
@@ -591,7 +602,7 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
                                                 }
                                                 else
                                                 {
-                                                    return VX_SUCCESS;
+                                                    continue;
                                                 }
                                             }
                                         }
@@ -660,7 +671,7 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
                                                 }
                                                 else
                                                 {
-                                                    return VX_SUCCESS;
+                                                    continue;
                                                 }
                                             }
                                         }
@@ -729,7 +740,7 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
                                                 }
                                                 else
                                                 {
-                                                    return VX_SUCCESS;
+                                                    continue;
                                                 }
                                             }
                                         }
@@ -741,40 +752,28 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
                 }
             }
 
+            if (b != -2)
+            {
+                dst_data[b] = 255;
 
-            dst_data[b] = 255;
+                if (b / dst_width < min_height)
+                    min_height = b / dst_width;
+                else
+                    if (b / dst_width > max_height)
+                        max_height = b / dst_width;
 
-            if (b / dst_width < min_height)
-                min_height = b / dst_width;
-            else
-                if (b / dst_width > max_height)
-                    max_height = b / dst_width;
-
-            if (b % dst_width < min_width)
-                min_width = b % dst_width;
-            else
-                if (b % dst_width > max_width)
-                    max_width = b % dst_width;
-            //printf("%d %d\n", b, c);
-            //Sleep(2000);
+                if (b % dst_width < min_width)
+                    min_width = b % dst_width;
+                else
+                    if (b % dst_width > max_width)
+                        max_width = b % dst_width;
+            }
         }
-
-        /*
-        printf("max %d\n", max);
-        printf("min %d\n\n", min);
-
-        printf("dst_width %d\n", dst_width);
-        printf("dst_height %d\n\n", dst_height);
-
-        printf("rect_width %d\n", rect_width);
-        printf("rect_height %d\n\n", rect_height);
-        */
-
-        //printf("%d %d %d %d\n", min_height, max_height, min_width, max_width);
 
         for (uint32_t j = 0, starting_point = min_height * dst_width + min_width; j < max_height - min_height + 1; j++)
             for (uint32_t i = 0; i < max_width - min_width + 1; i++)
-                dst_data[starting_point + j * dst_width + i] = 0;
+                //if (dst_data[starting_point + j * dst_width + i] != 255)
+                    dst_data[starting_point + j * dst_width + i] = 0;
     }
     return VX_SUCCESS;
 }
