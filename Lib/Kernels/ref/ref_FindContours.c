@@ -35,7 +35,7 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
     int32_t b0 = -1;
     int32_t b1 = -2;
     int32_t b = -4;
-    int32_t c = -5;
+    int32_t c = -6;
 
     uint32_t count;
 
