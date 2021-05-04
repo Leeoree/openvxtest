@@ -37,86 +37,99 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
     int32_t b = -4;
     int32_t c = -5;
 
+    uint32_t min_height;
+    uint32_t max_height;
+    uint32_t min_width;
+    uint32_t max_width;
 
-    // Search for the first non-zero pixel
-
-    for (uint32_t ind = 0; ind <= dst_height && b0 == -1; ind++)
+    for (int m = 0; m < 25; m++)
     {
-        // Horizontal rectangle case
-        if (ind == dst_height && dst_height != dst_width)
-        {
-            for (uint32_t column_right = ind; column_right < dst_width && b0 == -1; column_right++)
-            {
-                for (uint32_t ind_vertical = 0; ind_vertical < dst_height && b0 == -1; ind_vertical++)
-                {
-                    if (dst_data[ind_vertical * dst_width + column_right] != 0)
-                    {
-                        b0 = ind_vertical * dst_width + column_right;
-                    }
-                }
+        b0 = -1;
+        b1 = -2;
+        b = -4;
+        c = -5;
 
-            }
-        }
-        // Square case & vertical rectangle case
-        else
+        // Search for the first non-zero pixel
+
+        for (uint32_t ind = 0; ind <= dst_height && b0 == -1; ind++)
         {
-            for (uint32_t jnd = 0; jnd < dst_width && b0 == -1; jnd++)
+            // Horizontal rectangle case
+            if (ind == dst_height && dst_height != dst_width)
             {
-                // Horizontal side of the right angle
-                if (jnd < ind)
+                for (uint32_t column_right = ind; column_right < dst_width && b0 == -1; column_right++)
                 {
-                    if (dst_data[ind * dst_width + jnd] != 0)
+                    for (uint32_t ind_vertical = 0; ind_vertical < dst_height && b0 == -1; ind_vertical++)
                     {
-                        b0 = ind * dst_width + jnd;
-                    }
-                }
-                // Vertical side of the right angle
-                else
-                {
-                    for (uint32_t string_down = 0; string_down <= ind && b0 == -1; string_down++)
-                    {
-                        if (dst_data[string_down * dst_width + jnd] != 0)
+                        if (dst_data[ind_vertical * dst_width + column_right] != 0)
                         {
-                            b0 = string_down * dst_width + jnd;
+                            b0 = ind_vertical * dst_width + column_right;
+                        }
+                    }
+
+                }
+            }
+            // Square case & vertical rectangle case
+            else
+            {
+                for (uint32_t jnd = 0; jnd < dst_width && b0 == -1; jnd++)
+                {
+                    // Horizontal side of the right angle
+                    if (jnd < ind)
+                    {
+                        if (dst_data[ind * dst_width + jnd] != 0)
+                        {
+                            b0 = ind * dst_width + jnd;
+                        }
+                    }
+                    // Vertical side of the right angle
+                    else
+                    {
+                        for (uint32_t string_down = 0; string_down <= ind && b0 == -1; string_down++)
+                        {
+                            if (dst_data[string_down * dst_width + jnd] != 0)
+                            {
+                                b0 = string_down * dst_width + jnd;
+                            }
                         }
                     }
                 }
             }
         }
-    }
 
-    printf("%d %d %d\n", b0, dst_width, dst_height);
-    dst_data[b0] = 255;
-    c = b0 - 1;
-
-    //Contours builder
-    /*
-    * 2  3  4
-    * 1     5
-    * 8  7  6
-    */
-
-    while (b != b0 && c != b1)
-    {
-        if (b1 == -2)
+        if (b0 != -1)
         {
-            if(dst_data[c] != 0)
+            dst_data[b0] = 255;
+            c = b0 - 1;
+        }
+        else
+            break;
+
+        min_height = b0 / dst_width;
+        max_height = b0 / dst_width;
+        min_width = b0 % dst_width;
+        max_width = b0 % dst_width;
+
+        //Contours builder
+        /*
+        * 2  3  4
+        * 1     5
+        * 8  7  6
+        */
+
+        while (b != b0 && c != b1)
+        {
+            if (b1 == -2)
             {
-                b1 = c; c += dst_width; b = b1;
-            }
-            else
-            {
-                c -= dst_width;
                 if (dst_data[c] != 0)
                 {
                     b1 = c; c += dst_width; b = b1;
                 }
                 else
                 {
-                    c += 1;
+                    c -= dst_width;
                     if (dst_data[c] != 0)
                     {
-                        b1 = c; c -= 1; b = b1;
+                        b1 = c; c += dst_width; b = b1;
                     }
                     else
                     {
@@ -127,10 +140,10 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
                         }
                         else
                         {
-                            c += dst_width;
+                            c += 1;
                             if (dst_data[c] != 0)
                             {
-                                b1 = c; c -= dst_width; b = b1;
+                                b1 = c; c -= 1; b = b1;
                             }
                             else
                             {
@@ -141,10 +154,10 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
                                 }
                                 else
                                 {
-                                    c -= 1;
+                                    c += dst_width;
                                     if (dst_data[c] != 0)
                                     {
-                                        b1 = c; c += 1; b = b1;
+                                        b1 = c; c -= dst_width; b = b1;
                                     }
                                     else
                                     {
@@ -155,78 +168,14 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
                                         }
                                         else
                                         {
-                                            return VX_SUCCESS;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        else
-        {
-            //1
-            if (c == b - 1)
-            {
-                if (dst_data[c] != 0)
-                {
-                    b = c; c += dst_width;
-                }
-                else
-                {
-                    c -= dst_width;
-                    if (dst_data[c] != 0)
-                    {
-                        b = c;  c += dst_width;
-                    }
-                    else
-                    {
-                        c += 1;
-                        if (dst_data[c] != 0)
-                        {
-                            b = c; c -= 1;
-                        }
-                        else
-                        {
-                            c += 1;
-                            if (dst_data[c] != 0)
-                            {
-                                b = c; c -= 1;
-                            }
-                            else
-                            {
-                                c += dst_width;
-                                if (dst_data[c] != 0)
-                                {
-                                    b = c; c -= dst_width;
-                                }
-                                else
-                                {
-                                    c += dst_width;
-                                    if (dst_data[c] != 0)
-                                    {
-                                        b = c; c -= dst_width;
-                                    }
-                                    else
-                                    {
-                                        c -= 1;
-                                        if (dst_data[c] != 0)
-                                        {
-                                            b = c; c += 1;
-                                        }
-                                        else
-                                        {
                                             c -= 1;
                                             if (dst_data[c] != 0)
                                             {
-                                                b = c; c += 1;
+                                                b1 = c; c += 1; b = b1;
                                             }
                                             else
                                             {
-                                                return VX_SUCCESS;
+                                                continue;
                                             }
                                         }
                                     }
@@ -237,440 +186,21 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
                 }
             }
 
-            //2
-            if (c == b - 1 - dst_width)
+            else
             {
-                if (dst_data[c] != 0)
+                //1
+                if (c == b - 1)
                 {
-                    b = c; c += dst_width;
-                }
-                else
-                {
-                    c += 1;
                     if (dst_data[c] != 0)
                     {
-                        b = c;  c -= 1;
-                    }
-                    else
-                    {
-                        c += 1;
-                        if (dst_data[c] != 0)
-                        {
-                            b = c; c -= 1;
-                        }
-                        else
-                        {
-                            c += dst_width;
-                            if (dst_data[c] != 0)
-                            {
-                                b = c; c -= dst_width;
-                            }
-                            else
-                            {
-                                c += dst_width;
-                                if (dst_data[c] != 0)
-                                {
-                                    b = c; c -= dst_width;
-                                }
-                                else
-                                {
-                                    c -= 1;
-                                    if (dst_data[c] != 0)
-                                    {
-                                        b = c; c += 1;
-                                    }
-                                    else
-                                    {
-                                        c -= 1;
-                                        if (dst_data[c] != 0)
-                                        {
-                                            b = c; c += 1;
-                                        }
-                                        else
-                                        {
-                                            c -= dst_width;
-                                            if (dst_data[c] != 0)
-                                            {
-                                                b = c; c += dst_width;
-                                            }
-                                            else
-                                            {
-                                                return VX_SUCCESS;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            //3
-            if (c == b - dst_width)
-            {
-                if (dst_data[c] != 0)
-                {
-                    b = c; c -= 1;
-                }
-                else
-                {
-                    c += 1;
-                    if (dst_data[c] != 0)
-                    {
-                        b = c;  c -= 1;
-                    }
-                    else
-                    {
-                        c += dst_width;
-                        if (dst_data[c] != 0)
-                        {
-                            b = c; c -= dst_width;
-                        }
-                        else
-                        {
-                            c += dst_width;
-                            if (dst_data[c] != 0)
-                            {
-                                b = c; c -= dst_width;
-                            }
-                            else
-                            {
-                                c -= 1;
-                                if (dst_data[c] != 0)
-                                {
-                                    b = c; c += 1;
-                                }
-                                else
-                                {
-                                    c -= 1;
-                                    if (dst_data[c] != 0)
-                                    {
-                                        b = c; c += 1;
-                                    }
-                                    else
-                                    {
-                                        c -= dst_width;
-                                        if (dst_data[c] != 0)
-                                        {
-                                            b = c; c += dst_width;
-                                        }
-                                        else
-                                        {
-                                            c -= dst_width;
-                                            if (dst_data[c] != 0)
-                                            {
-                                                b = c; c += dst_width;
-                                            }
-                                            else
-                                            {
-                                                return VX_SUCCESS;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            //4
-            if (c == b + 1 - dst_width)
-            {
-                if (dst_data[c] != 0)
-                {
-                    b = c; c -= 1;
-                }
-                else
-                {
-                    c += dst_width;
-                    if (dst_data[c] != 0)
-                    {
-                        b = c;  c -= dst_width;
-                    }
-                    else
-                    {
-                        c += dst_width;
-                        if (dst_data[c] != 0)
-                        {
-                            b = c; c -= dst_width;
-                        }
-                        else
-                        {
-                            c -= 1;
-                            if (dst_data[c] != 0)
-                            {
-                                b = c; c += 1;
-                            }
-                            else
-                            {
-                                c -= 1;
-                                if (dst_data[c] != 0)
-                                {
-                                    b = c; c += 1;
-                                }
-                                else
-                                {
-                                    c -= dst_width;
-                                    if (dst_data[c] != 0)
-                                    {
-                                        b = c; c += dst_width;
-                                    }
-                                    else
-                                    {
-                                        c -= dst_width;
-                                        if (dst_data[c] != 0)
-                                        {
-                                            b = c; c += dst_width;
-                                        }
-                                        else
-                                        {
-                                            c += 1;
-                                            if (dst_data[c] != 0)
-                                            {
-                                                b = c; c -= 1;
-                                            }
-                                            else
-                                            {
-                                                return VX_SUCCESS;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            //5
-            if (c == b + 1)
-            {
-                if (dst_data[c] != 0)
-                {
-                    b = c; c -= dst_width;
-                }
-                else
-                {
-                    c += dst_width;
-                    if (dst_data[c] != 0)
-                    {
-                        b = c;  c -= dst_width;
-                    }
-                    else
-                    {
-                        c -= 1;
-                        if (dst_data[c] != 0)
-                        {
-                            b = c; c += 1;
-                        }
-                        else
-                        {
-                            c -= 1;
-                            if (dst_data[c] != 0)
-                            {
-                                b = c; c += 1;
-                            }
-                            else
-                            {
-                                c -= dst_width;
-                                if (dst_data[c] != 0)
-                                {
-                                    b = c; c += dst_width;
-                                }
-                                else
-                                {
-                                    c -= dst_width;
-                                    if (dst_data[c] != 0)
-                                    {
-                                        b = c; c += dst_width;
-                                    }
-                                    else
-                                    {
-                                        c += 1;
-                                        if (dst_data[c] != 0)
-                                        {
-                                            b = c; c -= 1;
-                                        }
-                                        else
-                                        {
-                                            c += 1;
-                                            if (dst_data[c] != 0)
-                                            {
-                                                b = c; c -= 1;
-                                            }
-                                            else
-                                            {
-                                                return VX_SUCCESS;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            //6
-            if (c == b + 1 + dst_width)
-            {
-                if (dst_data[c] != 0)
-                {
-                    b = c; c -= dst_width;
-                }
-                else
-                {
-                    c -= 1;
-                    if (dst_data[c] != 0)
-                    {
-                        b = c;  c += 1;
-                    }
-                    else
-                    {
-                        c -= 1;
-                        if (dst_data[c] != 0)
-                        {
-                            b = c; c += 1;
-                        }
-                        else
-                        {
-                            c -= dst_width;
-                            if (dst_data[c] != 0)
-                            {
-                                b = c; c += dst_width;
-                            }
-                            else
-                            {
-                                c -= dst_width;
-                                if (dst_data[c] != 0)
-                                {
-                                    b = c; c += dst_width;
-                                }
-                                else
-                                {
-                                    c += 1;
-                                    if (dst_data[c] != 0)
-                                    {
-                                        b = c; c -= 1;
-                                    }
-                                    else
-                                    {
-                                        c += 1;
-                                        if (dst_data[c] != 0)
-                                        {
-                                            b = c; c -= 1;
-                                        }
-                                        else
-                                        {
-                                            c += dst_width;
-                                            if (dst_data[c] != 0)
-                                            {
-                                                b = c; c -= dst_width;
-                                            }
-                                            else
-                                            {
-                                                return VX_SUCCESS;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            //7
-            if (c == b + dst_width)
-            {
-                if (dst_data[c] != 0)
-                {
-                    b = c; c -= 1;
-                }
-                else
-                {
-                    c -= 1;
-                    if (dst_data[c] != 0)
-                    {
-                        b = c;  c += 1;
+                        b = c; c += dst_width;
                     }
                     else
                     {
                         c -= dst_width;
                         if (dst_data[c] != 0)
                         {
-                            b = c; c += dst_width;
-                        }
-                        else
-                        {
-                            c -= dst_width;
-                            if (dst_data[c] != 0)
-                            {
-                                b = c; c += dst_width;
-                            }
-                            else
-                            {
-                                c += 1;
-                                if (dst_data[c] != 0)
-                                {
-                                    b = c; c -= 1;
-                                }
-                                else
-                                {
-                                    c += 1;
-                                    if (dst_data[c] != 0)
-                                    {
-                                        b = c; c -= 1;
-                                    }
-                                    else
-                                    {
-                                        c += dst_width;
-                                        if (dst_data[c] != 0)
-                                        {
-                                            b = c; c -= dst_width;
-                                        }
-                                        else
-                                        {
-                                            c += dst_width;
-                                            if (dst_data[c] != 0)
-                                            {
-                                                b = c; c -= dst_width;
-                                            }
-                                            else
-                                            {
-                                                return VX_SUCCESS;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            //8
-            if (c == b - 1 + dst_width)
-            {
-                if (dst_data[c] != 0)
-                {
-                    b = c; c -= 1;
-                }
-                else
-                {
-                    c -= dst_width;
-                    if (dst_data[c] != 0)
-                    {
-                        b = c;  c += dst_width;
-                    }
-                    else
-                    {
-                        c -= dst_width;
-                        if (dst_data[c] != 0)
-                        {
-                            b = c; c += dst_width;
+                            b = c;  c += dst_width;
                         }
                         else
                         {
@@ -709,7 +239,498 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
                                             }
                                             else
                                             {
-                                                return VX_SUCCESS;
+                                                c -= 1;
+                                                if (dst_data[c] != 0)
+                                                {
+                                                    b = c; c += 1;
+                                                }
+                                                else
+                                                {
+                                                    return VX_SUCCESS;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                //2
+                if (c == b - 1 - dst_width)
+                {
+                    if (dst_data[c] != 0)
+                    {
+                        b = c; c += dst_width;
+                    }
+                    else
+                    {
+                        c += 1;
+                        if (dst_data[c] != 0)
+                        {
+                            b = c;  c -= 1;
+                        }
+                        else
+                        {
+                            c += 1;
+                            if (dst_data[c] != 0)
+                            {
+                                b = c; c -= 1;
+                            }
+                            else
+                            {
+                                c += dst_width;
+                                if (dst_data[c] != 0)
+                                {
+                                    b = c; c -= dst_width;
+                                }
+                                else
+                                {
+                                    c += dst_width;
+                                    if (dst_data[c] != 0)
+                                    {
+                                        b = c; c -= dst_width;
+                                    }
+                                    else
+                                    {
+                                        c -= 1;
+                                        if (dst_data[c] != 0)
+                                        {
+                                            b = c; c += 1;
+                                        }
+                                        else
+                                        {
+                                            c -= 1;
+                                            if (dst_data[c] != 0)
+                                            {
+                                                b = c; c += 1;
+                                            }
+                                            else
+                                            {
+                                                c -= dst_width;
+                                                if (dst_data[c] != 0)
+                                                {
+                                                    b = c; c += dst_width;
+                                                }
+                                                else
+                                                {
+                                                    return VX_SUCCESS;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                //3
+                if (c == b - dst_width)
+                {
+                    if (dst_data[c] != 0)
+                    {
+                        b = c; c -= 1;
+                    }
+                    else
+                    {
+                        c += 1;
+                        if (dst_data[c] != 0)
+                        {
+                            b = c;  c -= 1;
+                        }
+                        else
+                        {
+                            c += dst_width;
+                            if (dst_data[c] != 0)
+                            {
+                                b = c; c -= dst_width;
+                            }
+                            else
+                            {
+                                c += dst_width;
+                                if (dst_data[c] != 0)
+                                {
+                                    b = c; c -= dst_width;
+                                }
+                                else
+                                {
+                                    c -= 1;
+                                    if (dst_data[c] != 0)
+                                    {
+                                        b = c; c += 1;
+                                    }
+                                    else
+                                    {
+                                        c -= 1;
+                                        if (dst_data[c] != 0)
+                                        {
+                                            b = c; c += 1;
+                                        }
+                                        else
+                                        {
+                                            c -= dst_width;
+                                            if (dst_data[c] != 0)
+                                            {
+                                                b = c; c += dst_width;
+                                            }
+                                            else
+                                            {
+                                                c -= dst_width;
+                                                if (dst_data[c] != 0)
+                                                {
+                                                    b = c; c += dst_width;
+                                                }
+                                                else
+                                                {
+                                                    return VX_SUCCESS;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                //4
+                if (c == b + 1 - dst_width)
+                {
+                    if (dst_data[c] != 0)
+                    {
+                        b = c; c -= 1;
+                    }
+                    else
+                    {
+                        c += dst_width;
+                        if (dst_data[c] != 0)
+                        {
+                            b = c;  c -= dst_width;
+                        }
+                        else
+                        {
+                            c += dst_width;
+                            if (dst_data[c] != 0)
+                            {
+                                b = c; c -= dst_width;
+                            }
+                            else
+                            {
+                                c -= 1;
+                                if (dst_data[c] != 0)
+                                {
+                                    b = c; c += 1;
+                                }
+                                else
+                                {
+                                    c -= 1;
+                                    if (dst_data[c] != 0)
+                                    {
+                                        b = c; c += 1;
+                                    }
+                                    else
+                                    {
+                                        c -= dst_width;
+                                        if (dst_data[c] != 0)
+                                        {
+                                            b = c; c += dst_width;
+                                        }
+                                        else
+                                        {
+                                            c -= dst_width;
+                                            if (dst_data[c] != 0)
+                                            {
+                                                b = c; c += dst_width;
+                                            }
+                                            else
+                                            {
+                                                c += 1;
+                                                if (dst_data[c] != 0)
+                                                {
+                                                    b = c; c -= 1;
+                                                }
+                                                else
+                                                {
+                                                    return VX_SUCCESS;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                //5
+                if (c == b + 1)
+                {
+                    if (dst_data[c] != 0)
+                    {
+                        b = c; c -= dst_width;
+                    }
+                    else
+                    {
+                        c += dst_width;
+                        if (dst_data[c] != 0)
+                        {
+                            b = c;  c -= dst_width;
+                        }
+                        else
+                        {
+                            c -= 1;
+                            if (dst_data[c] != 0)
+                            {
+                                b = c; c += 1;
+                            }
+                            else
+                            {
+                                c -= 1;
+                                if (dst_data[c] != 0)
+                                {
+                                    b = c; c += 1;
+                                }
+                                else
+                                {
+                                    c -= dst_width;
+                                    if (dst_data[c] != 0)
+                                    {
+                                        b = c; c += dst_width;
+                                    }
+                                    else
+                                    {
+                                        c -= dst_width;
+                                        if (dst_data[c] != 0)
+                                        {
+                                            b = c; c += dst_width;
+                                        }
+                                        else
+                                        {
+                                            c += 1;
+                                            if (dst_data[c] != 0)
+                                            {
+                                                b = c; c -= 1;
+                                            }
+                                            else
+                                            {
+                                                c += 1;
+                                                if (dst_data[c] != 0)
+                                                {
+                                                    b = c; c -= 1;
+                                                }
+                                                else
+                                                {
+                                                    return VX_SUCCESS;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                //6
+                if (c == b + 1 + dst_width)
+                {
+                    if (dst_data[c] != 0)
+                    {
+                        b = c; c -= dst_width;
+                    }
+                    else
+                    {
+                        c -= 1;
+                        if (dst_data[c] != 0)
+                        {
+                            b = c;  c += 1;
+                        }
+                        else
+                        {
+                            c -= 1;
+                            if (dst_data[c] != 0)
+                            {
+                                b = c; c += 1;
+                            }
+                            else
+                            {
+                                c -= dst_width;
+                                if (dst_data[c] != 0)
+                                {
+                                    b = c; c += dst_width;
+                                }
+                                else
+                                {
+                                    c -= dst_width;
+                                    if (dst_data[c] != 0)
+                                    {
+                                        b = c; c += dst_width;
+                                    }
+                                    else
+                                    {
+                                        c += 1;
+                                        if (dst_data[c] != 0)
+                                        {
+                                            b = c; c -= 1;
+                                        }
+                                        else
+                                        {
+                                            c += 1;
+                                            if (dst_data[c] != 0)
+                                            {
+                                                b = c; c -= 1;
+                                            }
+                                            else
+                                            {
+                                                c += dst_width;
+                                                if (dst_data[c] != 0)
+                                                {
+                                                    b = c; c -= dst_width;
+                                                }
+                                                else
+                                                {
+                                                    return VX_SUCCESS;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                //7
+                if (c == b + dst_width)
+                {
+                    if (dst_data[c] != 0)
+                    {
+                        b = c; c -= 1;
+                    }
+                    else
+                    {
+                        c -= 1;
+                        if (dst_data[c] != 0)
+                        {
+                            b = c;  c += 1;
+                        }
+                        else
+                        {
+                            c -= dst_width;
+                            if (dst_data[c] != 0)
+                            {
+                                b = c; c += dst_width;
+                            }
+                            else
+                            {
+                                c -= dst_width;
+                                if (dst_data[c] != 0)
+                                {
+                                    b = c; c += dst_width;
+                                }
+                                else
+                                {
+                                    c += 1;
+                                    if (dst_data[c] != 0)
+                                    {
+                                        b = c; c -= 1;
+                                    }
+                                    else
+                                    {
+                                        c += 1;
+                                        if (dst_data[c] != 0)
+                                        {
+                                            b = c; c -= 1;
+                                        }
+                                        else
+                                        {
+                                            c += dst_width;
+                                            if (dst_data[c] != 0)
+                                            {
+                                                b = c; c -= dst_width;
+                                            }
+                                            else
+                                            {
+                                                c += dst_width;
+                                                if (dst_data[c] != 0)
+                                                {
+                                                    b = c; c -= dst_width;
+                                                }
+                                                else
+                                                {
+                                                    return VX_SUCCESS;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                //8
+                if (c == b - 1 + dst_width)
+                {
+                    if (dst_data[c] != 0)
+                    {
+                        b = c; c -= 1;
+                    }
+                    else
+                    {
+                        c -= dst_width;
+                        if (dst_data[c] != 0)
+                        {
+                            b = c;  c += dst_width;
+                        }
+                        else
+                        {
+                            c -= dst_width;
+                            if (dst_data[c] != 0)
+                            {
+                                b = c; c += dst_width;
+                            }
+                            else
+                            {
+                                c += 1;
+                                if (dst_data[c] != 0)
+                                {
+                                    b = c; c -= 1;
+                                }
+                                else
+                                {
+                                    c += 1;
+                                    if (dst_data[c] != 0)
+                                    {
+                                        b = c; c -= 1;
+                                    }
+                                    else
+                                    {
+                                        c += dst_width;
+                                        if (dst_data[c] != 0)
+                                        {
+                                            b = c; c -= dst_width;
+                                        }
+                                        else
+                                        {
+                                            c += dst_width;
+                                            if (dst_data[c] != 0)
+                                            {
+                                                b = c; c -= dst_width;
+                                            }
+                                            else
+                                            {
+                                                c -= 1;
+                                                if (dst_data[c] != 0)
+                                                {
+                                                    b = c; c += 1;
+                                                }
+                                                else
+                                                {
+                                                    return VX_SUCCESS;
+                                                }
                                             }
                                         }
                                     }
@@ -719,14 +740,41 @@ vx_status ref_FindContours(const vx_image src_image, vx_image dst_image)
                     }
                 }
             }
+
+
+            dst_data[b] = 255;
+
+            if (b / dst_width < min_height)
+                min_height = b / dst_width;
+            else
+                if (b / dst_width > max_height)
+                    max_height = b / dst_width;
+
+            if (b % dst_width < min_width)
+                min_width = b % dst_width;
+            else
+                if (b % dst_width > max_width)
+                    max_width = b % dst_width;
+            //printf("%d %d\n", b, c);
+            //Sleep(2000);
         }
 
+        /*
+        printf("max %d\n", max);
+        printf("min %d\n\n", min);
 
-        dst_data[b] = 255;
-        
-        //printf("%d %d\n", b, c);
-        //Sleep(2000);
+        printf("dst_width %d\n", dst_width);
+        printf("dst_height %d\n\n", dst_height);
+
+        printf("rect_width %d\n", rect_width);
+        printf("rect_height %d\n\n", rect_height);
+        */
+
+        //printf("%d %d %d %d\n", min_height, max_height, min_width, max_width);
+
+        for (uint32_t j = 0, starting_point = min_height * dst_width + min_width; j < max_height - min_height + 1; j++)
+            for (uint32_t i = 0; i < max_width - min_width + 1; i++)
+                dst_data[starting_point + j * dst_width + i] = 0;
     }
-
     return VX_SUCCESS;
 }
