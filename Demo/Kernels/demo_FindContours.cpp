@@ -92,7 +92,7 @@ void demo_FindContours::applyParameters(int, void* data)
     for (size_t i = 0; i < contours.size(); i++)
     {
         cv::Scalar color = cv::Scalar(rng.uniform(255, 256), rng.uniform(255, 256), rng.uniform(255, 256));
-        cv::drawContours(drawing, contours, (int)i, color, 2, cv::LINE_8, hierarchy, 0);
+        cv::drawContours(drawing, contours, (int)i, color, 1, cv::LINE_8, hierarchy, 0);
     }
 
     cv::imshow(m_openCVWindow, drawing);
